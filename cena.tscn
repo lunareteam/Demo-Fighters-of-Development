@@ -497,12 +497,10 @@ position = Vector2( -8.82387, -46.9314 )
 scale = Vector2( 0.249756, 1.32642 )
 frames = SubResource( 98 )
 animation = "idle"
-frame = 3
 playing = true
 flip_h = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
-visible = false
 position = Vector2( -8.86099, -46.9314 )
 scale = Vector2( 0.0312195, 0.165803 )
 shape = SubResource( 99 )
@@ -512,13 +510,13 @@ position = Vector2( 517.446, 534.419 )
 scale = Vector2( 32.0313, 6.03125 )
 script = ExtResource( 3 )
 
-[node name="Player2_Sprite" type="AnimatedSprite" parent="Player2"]
+[node name="Player_Sprite" type="AnimatedSprite" parent="Player2"]
 modulate = Color( 0.992157, 1, 0.317647, 1 )
 position = Vector2( 7.82838, -47.3593 )
 scale = Vector2( 0.249756, 1.32642 )
 frames = SubResource( 98 )
-animation = "chapeu"
-frame = 8
+animation = "idle"
+frame = 3
 playing = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Player2"]
