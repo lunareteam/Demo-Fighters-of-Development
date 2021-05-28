@@ -1,6 +1,6 @@
 extends KinematicBody2D
 
-
+class_name Player
 # Declare member variables here. Examples:
 var velocity = Vector2()
 var speed = 800
@@ -122,5 +122,5 @@ func _physics_process(delta):
 		collided_with = collision.collider.name
 		#print("I collided with ", collision.collider.name)
 	
-	print(init_jump)
+	#print(init_jump)
 	pass
