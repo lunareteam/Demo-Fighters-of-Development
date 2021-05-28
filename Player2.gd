@@ -1,28 +1,17 @@
-extends KinematicBody2D
+extends Player
 
+var mode = 0
 
-# Declare member variables here. Examples:
-var velocity = Vector2()
-var speed = 1000
-var collided_with = ""
-
-# Called when the node enters the scene tree for the first time.
-func _ready():
-	pass # Replace with function body.
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta):
+func IA():
+	pass
 	
-	pass
-
-func _physics_process(delta):
-	#get_input()
-	velocity.y = 0
-	if(collided_with != "Chao"):
-		velocity.y = 150
-	#print(velocity)
-	var collision = move_and_collide(velocity * delta)
-	if collision:
-		collided_with = collision.collider.name
-		#print("I collided with ", collision.collider.name)
-	pass
+func control():
+	if Input.is_action_just_pressed('ui_ia'):
+		mode += 1
+	
+	if mode % 3 == 0:
+		return .control()
+	elif mode % 3 == 1:
+		return IA()
+	else:
+		return
