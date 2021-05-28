@@ -10,6 +10,7 @@ var JUMP = -1500
 var jump_force = JUMP
 var dance_flag = 0
 var hxnd_flag = 0
+var action_busy_list = ["kick_hxd", "kick_pe","soco_pe","soco_hxd"]
 
 var UP
 var RIGHT
@@ -17,12 +18,34 @@ var LEFT
 var DOWN
 var DOWN_RELEASE
 
+# 0 pra nadar
+# 1 pra socar
+# 2 pra chutar
+# 3 pra bloquear
+var ACTION
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	pass # Replace with function body.
 	
 func animate():
-	if init_jump == 3:
+	if ACTION == 1:
+		if hxnd_flag == 0:
+			$Player_Sprite.animation = "soco_pe"
+		else:
+			$Player_Sprite.animation = "soco_hxd"
+	elif ACTION == 2:
+		if hxnd_flag == 0:
+			$Player_Sprite.animation = "kick_pe"
+		else:
+			$Player_Sprite.animation = "kick_hxd"
+	elif ACTION == 3:
+		if hxnd_flag == 0:
+			$Player_Sprite.animation = "block_pe"
+		else:
+			$Player_Sprite.animation = "block_hxd"
+	#movimentos "normais"
+	elif init_jump == 3:
 		$Player_Sprite.animation = "posjump"
 	elif init_jump == -1:
 		$Player_Sprite.animation = "prejump"
@@ -44,6 +67,15 @@ func animate():
 		$Player_Sprite.animation = "idle"
 	pass
 
+func is_busy():
+	var ta_ocupado = $Player_Sprite.animation in action_busy_list
+	if ta_ocupado and not is_finished($Player_Sprite.animation):
+		return true
+	elif ta_ocupado or "block" in $Player_Sprite.animation:
+		ACTION = 0
+	return false
+
+
 func control():
 	RIGHT =  Input.is_action_pressed('ui_right')
 	UP =  Input.is_action_just_pressed('ui_up')
@@ -51,11 +83,21 @@ func control():
 	DOWN = Input.is_action_pressed('ui_down')
 	DOWN_RELEASE = Input.is_action_just_released("ui_down")
 	
-	if RIGHT or LEFT or UP or DOWN:
+	# acoes
+	if not is_busy():
+		if Input.is_action_just_pressed("game_kick"):
+			ACTION = 2
+		elif Input.is_action_just_pressed("game_punch"):
+			ACTION = 1
+		elif Input.is_action_pressed("game_block"):
+			ACTION = 3
+	
+		# danca gatinho, danca
+	if RIGHT or LEFT or UP or DOWN or ACTION != 0:
 		dance_flag = 0
-	elif dance_flag < 1 and  Input.is_action_just_pressed('ui_dance'):
+	elif dance_flag < 1 and  Input.is_action_just_pressed('game_dance'):
 		dance_flag = 1
-		
+	
 	pass
 
 func dance():
@@ -79,16 +121,17 @@ func jump():
 		if is_finished("prejump"):
 			#iniciar o movimento de pulo
 			init_jump = 1
+		elif ACTION != 0:
+			init_jump = 0
 		return
 	# se bater no chão
 	if collided_with == "Chao" and init_jump == 2:
 		init_jump = 3
 		return
-	if init_jump == 3 and  is_finished("posjump"):
+	if init_jump == 3 and  (is_finished("posjump") or ACTION != 0):
 		init_jump = 0
 		jump_force = JUMP
 		return
-		
 		
 		
 	jump_force += 50
@@ -109,16 +152,16 @@ func get_input():
 	velocity = Vector2()
 	control()
 	# Detect up/down/left/right keystate and only move when pressed.
-	if hxnd_flag == 3 and is_finished("hxd_end"):
+	if hxnd_flag == 3 and (is_finished("hxd_end") or ACTION != 0):
 		hxnd_flag = 0	
 	if DOWN_RELEASE and hxnd_flag != 0:
 		hxnd_flag = 3
 	elif DOWN:
 		if hxnd_flag == 0:
 			hxnd_flag = 1
-		if hxnd_flag == 1 and is_finished("hxnd"):
+		if hxnd_flag == 1 and (ACTION != 0 or is_finished("hxnd")):
 			hxnd_flag = 2
-	else:
+	elif ACTION == 0:
 		if RIGHT:
 			velocity.x += 1
 		if LEFT:
@@ -127,6 +170,7 @@ func get_input():
 			init_jump = -1
 
 	velocity = velocity.normalized() * speed
+	#print(init_jump)
 	pass
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
