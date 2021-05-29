@@ -1,0 +1,15 @@
+[gd_resource type="Animation" format=2]
+
+[resource]
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( -0.00110824, 0.0506094, 0.10676, 0.167343, 0.235315, 0.2826, 0.409677, 0.473216, 0.526411, 0.582562 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ),
+"update": 1,
+"values": [ 195, 196, 197, 198, 199, 200, 201, 202, 203, 204 ]
+}
