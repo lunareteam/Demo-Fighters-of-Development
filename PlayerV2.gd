@@ -1,17 +1,22 @@
 extends KinematicBody2D
 
 class_name PlayerV2
-# Declare member variables here. Examples:
-var velocity = Vector2()
-var speed = 800
-var collided_with = ""
-var init_jump = 0
+
+# Change as necessary
+var gravity = 1000
+var speed = 400
 var JUMP = -1500
 var jump_force = JUMP
+
+# Helpers
+var velocity = Vector2()
+var collided_with = ""
+var init_jump = 0
 var dance_flag = 0
 var hxnd_flag = 0
 var action_busy_list = ["kick_hxd", "kick_pe","soco_pe","soco_hxd"]
 
+# ?
 var animation_time = 0
 
 var DEBUG = false
@@ -29,29 +34,24 @@ var ANIMATOR
 # 3 pra bloquear
 var ACTION = 0
 
-# Called when the node enters the scene tree for the first time.
 func _ready():
 	ANIMATOR = $Sprite/AnimationPlayer
-	pass # Replace with function body.
-	
-	
+	pass
+
 func DEBUG_CONTROLS():
 	print("L:",LEFT," u:",UP," d:",DOWN," dr:",DOWN_RELEASE," r:",RIGHT,"   a:",ACTION)
 	pass
-	
+
 func DEBUG_FLAGS():
 	print("jf:",jump_force," d:",dance_flag," h:",hxnd_flag," j:",init_jump,"   a:",ACTION)
 	pass
-	
 
-	
 func play_animation(animation):
-
 	if animation != ANIMATOR.current_animation:	
 		animation_time = 0
 	ANIMATOR.play(animation)
 	pass
-	
+
 func animate():
 	if ACTION == 1:
 		if hxnd_flag == 0:
@@ -117,7 +117,7 @@ func control():
 		elif Input.is_action_pressed("game_block"):
 			ACTION = 3
 	
-		# danca gatinho, danca
+	# danca gatinho, danca
 	if RIGHT or LEFT or UP or DOWN or ACTION != 0:
 		dance_flag = 0
 	elif dance_flag < 1 and  Input.is_action_just_pressed('game_dance'):
@@ -180,6 +180,8 @@ func normalize_wall():
 func get_input():
 	velocity = Vector2()
 	control()
+	
+	var double = 2
 	# Detect up/down/left/right keystate and only move when pressed.
 	if hxnd_flag == 3 and (is_finished("hxd_end") or ACTION != 0):
 		hxnd_flag = 0	
@@ -190,7 +192,10 @@ func get_input():
 			hxnd_flag = 1
 		if hxnd_flag == 1 and (ACTION != 0 or is_finished("hxnd")):
 			hxnd_flag = 2
-	elif ACTION == 0:
+		
+		double /= 2
+	
+	if ACTION == 0:
 		if RIGHT:
 			velocity.x += 1
 		if LEFT:
@@ -198,7 +203,7 @@ func get_input():
 		if UP and init_jump == 0:
 			init_jump = -1
 
-	velocity = velocity.normalized() * speed
+	velocity = velocity.normalized() * speed * (double)
 	#print(init_jump)
 	pass
 
@@ -211,7 +216,7 @@ func _process(delta):
 func _physics_process(delta):
 	get_input()
 	if(collided_with != "Chao" and init_jump == 0):
-		velocity.y = 100
+		velocity.y = gravity
 	jump()
 	dance()
 	var collision = move_and_collide(velocity * delta)
