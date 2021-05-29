@@ -1,6 +1,6 @@
 extends KinematicBody2D
 
-class_name Player
+class_name PlayerV2
 # Declare member variables here. Examples:
 var velocity = Vector2()
 var speed = 800
@@ -12,24 +12,44 @@ var dance_flag = 0
 var hxnd_flag = 0
 var action_busy_list = ["kick_hxd", "kick_pe","soco_pe","soco_hxd"]
 
+var animation_time = 0
+
+var DEBUG = false
+
 var UP
 var RIGHT
 var LEFT
 var DOWN
 var DOWN_RELEASE
+var ANIMATOR
 
 # 0 pra nadar
 # 1 pra socar
 # 2 pra chutar
 # 3 pra bloquear
-var ACTION
+var ACTION = 0
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	ANIMATOR = $Sprite/AnimationPlayer
 	pass # Replace with function body.
 	
+	
+func DEBUG_CONTROLS():
+	print("L:",LEFT," u:",UP," d:",DOWN," dr:",DOWN_RELEASE," r:",RIGHT,"   a:",ACTION)
+	pass
+	
+func DEBUG_FLAGS():
+	print("jf:",jump_force," d:",dance_flag," h:",hxnd_flag," j:",init_jump,"   a:",ACTION)
+	pass
+	
+
+	
 func play_animation(animation):
-	$Player_Sprite.animation = animation
+
+	if animation != ANIMATOR.current_animation:	
+		animation_time = 0
+	ANIMATOR.play(animation)
 	pass
 	
 func animate():
@@ -72,13 +92,12 @@ func animate():
 	pass
 
 func is_busy():
-	var ta_ocupado = $Player_Sprite.animation in action_busy_list
-	if ta_ocupado and not is_finished($Player_Sprite.animation):
+	var ta_ocupado = ANIMATOR.current_animation in action_busy_list
+	if ta_ocupado and not is_finished(ANIMATOR.current_animation):
 		return true
-	elif ta_ocupado or "block" in $Player_Sprite.animation:
+	elif ta_ocupado or "block" in  ANIMATOR.current_animation:
 		ACTION = 0
 	return false
-
 
 func control():
 	RIGHT =  Input.is_action_pressed('ui_right')
@@ -86,6 +105,8 @@ func control():
 	LEFT =  Input.is_action_pressed('ui_left')
 	DOWN = Input.is_action_pressed('ui_down')
 	DOWN_RELEASE = Input.is_action_just_released("ui_down")
+	
+	DEBUG = Input.is_action_pressed("game_debug")
 	
 	# acoes
 	if not is_busy():
@@ -105,7 +126,11 @@ func control():
 	pass
 
 func is_finished(animacao):
-	return $Player_Sprite.frame == $Player_Sprite.frames.get_frame_count(animacao) -1;
+	if animacao != ANIMATOR.current_animation:
+		print("OPS...\n esperado: ",animacao,"\n obtido: ",ANIMATOR.current_animation)
+		return false
+
+	return animation_time >= ANIMATOR.current_animation_length
 
 func dance():
 	if dance_flag == 0:
@@ -113,7 +138,6 @@ func dance():
 	if is_finished("chapeu"):
 		dance_flag = 2
 		return
-
 
 func jump():
 	
@@ -181,6 +205,7 @@ func get_input():
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	animate()
+	animation_time += delta
 	pass
 
 func _physics_process(delta):
@@ -193,6 +218,8 @@ func _physics_process(delta):
 	if collision:
 		collided_with = collision.collider.name
 		normalize_wall()
-		#print("I collided with ", collision.collider.name)
-	
+	if DEBUG:
+		print(ANIMATOR.current_animation)
+		DEBUG_CONTROLS()
+		DEBUG_FLAGS()
 	pass

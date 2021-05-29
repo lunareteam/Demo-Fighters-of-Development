@@ -6,7 +6,7 @@ func IA():
 	pass
 	
 func control():
-	if Input.is_action_just_pressed('ui_ia'):
+	if Input.is_action_just_pressed('game_ia'):
 		mode += 1
 	
 	if mode % 3 == 0:
