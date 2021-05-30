@@ -3,9 +3,9 @@ extends KinematicBody2D
 class_name PlayerV2
 
 # Change as necessary
-var gravity = 1000
+var gravity = 800
 var speed = 400
-var JUMP = 1000
+var JUMP = 1200
 var jump_duration = 0.5
 var offset = 0.001
 var pause = false
@@ -178,21 +178,21 @@ func jump(delta):
 		if is_finished("prejump"):
 			#iniciar o movimento de pulo
 			init_jump = 1
-		elif ACTION != 0:
+		elif ACTION == 3:
 			init_jump = 0
 		return
 	# se bater no chão
 	elif collided_with == "Chao" and init_jump == 2:
 		init_jump = 3
 		return
-	elif init_jump == 3 and  (is_finished("posjump") or ACTION != 0):
+	elif init_jump == 3 and  (is_finished("posjump") or ACTION == 3):
 		init_jump = 0
 		jump_timer = 0
 		return
 	elif init_jump == 1 or init_jump == 2:
 		if jump_timer > jump_duration/2:
 			init_jump = 2
-			velocity.y = JUMP
+			#velocity.y = JUMP/2
 		else:
 			velocity.y = -JUMP
 		
@@ -234,6 +234,11 @@ func get_input():
 			velocity.x -= 1
 		if UP and init_jump == 0 and not DOWN:
 			init_jump = -1
+	elif ACTION != 3 and init_jump != 0:
+		if RIGHT:
+			velocity.x += 1
+		if LEFT:
+			velocity.x -= 1
 
 	velocity = velocity.normalized() * speed * (double)
 	#print(init_jump)
@@ -249,9 +254,9 @@ func _process(delta):
 # teoricamente é para ter tudo relacionado a fisica do obj
 func _physics_process(delta):
 	get_input()
-	if(collided_with != "Chao" and init_jump == 0):
-		velocity.y = gravity
 	jump(delta)
+	if(collided_with != "Chao" and (init_jump != 1)):
+		velocity.y = gravity
 	dance()
 	collided_with = ""
 	if not pause:
