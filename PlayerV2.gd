@@ -9,6 +9,7 @@ var JUMP = 1200
 var jump_duration = 0.5
 var offset = 0.001
 var pause = false
+var interval_buffer = 3.0
 
 # Helpers
 var velocity = Vector2()
@@ -16,10 +17,11 @@ var collided_with = ""
 var init_jump = 0
 var dance_flag = 0
 var hxnd_flag = 0
-var action_busy_list = ["kick_hxd", "kick_pe","soco_pe","soco_hxd"]
+var action_busy_list = ["kick_hxd", "kick_pe", "kick2_pe","soco_pe","soco_hxd"]
 var animacao_atual
 var animation_time = 0
 var jump_timer = 0
+var FRENTE = 1
 
 # Controlador  de log
 var DEBUG = false
@@ -37,6 +39,11 @@ var ANIMATOR
 # 2 pra chutar
 # 3 pra bloquear
 var ACTION = 0
+var SP = 0
+
+var BUFFER = [0,0,0]
+var old 
+var time = 0
 
 func _ready():
 	ANIMATOR = $Sprite/AnimationPlayer
@@ -54,11 +61,12 @@ func pause_unpause():
 	else:
 		pause = false
 
-# funções que ajudam a debugaros controles e flags
+# funções que ajudam a debugar os controles
 func DEBUG_CONTROLS():
 	print("L:",LEFT," u:",UP," d:",DOWN," dr:",DOWN_RELEASE," r:",RIGHT,"   a:",ACTION)
 	pass
 
+# funções que ajudam a debugar as flags
 func DEBUG_FLAGS():
 	print("jf:",jump_timer," d:",dance_flag," h:",hxnd_flag," j:",init_jump,"   a:",ACTION)
 	pass
@@ -70,21 +78,53 @@ func play_animation(animation):
 	ANIMATOR.play(animation)
 	pass
 
+# isso mesmo que voce ouviu, detecta se o buffer ta obsoleto
+func is_buffer_old():
+	return BUFFER[1] < time - interval_buffer
+
+# funcao auxiliar do buffer
+func set_old():
+	if velocity.x != 0:
+		old = abs(velocity.x)/velocity.x
+	else:
+		old = 0
+	pass
+
+# é a função que atualiza o buffer
+func buffer_update():
+	# se a direção atual for diferente da antiga e a antiga não for "parado" 
+	# e o antigo não tiver registrado no buffer, ele atualiza
+	# se a pessoa ficar na direção por muito tempo, também é registrado
+	if old != velocity.x and (old != 0 or is_buffer_old()) and old != BUFFER[0]:
+		BUFFER	= [old, time, velocity.x]
+	# se passou o tempo e o buffer old não for parado, vai atualizar e ficar parado
+	elif is_buffer_old() and BUFFER[0] != 0:
+		BUFFER = [0, time, 0]
+	# a ultima posição do buffer aguar o movimento atual
+	BUFFER[2] = velocity.x	
+	pass	
+
 # atribui as animações de acordo com as flags
 func animate():
 	if pause:
 		return
 	
 	if ACTION == 1:
-		if hxnd_flag == 0:
+		if hxnd_flag == 0 and animacao_atual != "soco_hxd":
 			animacao_atual = "soco_pe"
-		else:
+		elif animacao_atual != "soco_pe":
 			animacao_atual = "soco_hxd"
-	elif ACTION == 2:
-		if hxnd_flag == 0:
-			animacao_atual = "kick_pe"
 		else:
+			animacao_atual = "soco_pe"
+	elif ACTION == 2:
+		if hxnd_flag == 0 and animacao_atual != "kick_hxd" and SP==1:
+			animacao_atual = "kick_pe"
+		elif hxnd_flag == 0 and animacao_atual != "kick_hxd" and animacao_atual != "kick_pe":
+			animacao_atual = "kick2_pe"
+		elif animacao_atual != "kick2_pe" and animacao_atual != "kick_pe":
 			animacao_atual = "kick_hxd"
+		else:
+			animacao_atual = "kick2_pe"
 	elif ACTION == 3:
 		if hxnd_flag == 0:
 			animacao_atual = "block_pe"
@@ -99,11 +139,13 @@ func animate():
 		animacao_atual = "prejump"
 	elif hxnd_flag == 1:
 		animacao_atual = "hxnd"
-	elif hxnd_flag == 2:
+	elif hxnd_flag == 2 and velocity.x == 0:
 		animacao_atual = "hxd"
+	elif hxnd_flag == 2:
+		animacao_atual = "walk_hxd"
 	elif hxnd_flag == 3:
 		animacao_atual = "hxd_end"
-	elif(velocity.x != 0):
+	elif velocity.x != 0:
 		animacao_atual = "walk"
 	elif dance_flag == 1:
 		animacao_atual = "chapeu"
@@ -132,7 +174,7 @@ func control():
 	DOWN = Input.is_action_pressed('ui_down')
 	DOWN_RELEASE = Input.is_action_just_released("ui_down")
 	
-	DEBUG = Input.is_action_just_pressed("game_debug")
+	DEBUG = Input.is_action_pressed("game_debug")
 	
 	# acoes
 	if not is_busy():
@@ -201,16 +243,23 @@ func jump(delta):
 
 # retira o atrito da parede
 func normalize_wall():
+	var last = velocity.x
 	if collided_with == 'Parede_D':
 		velocity.x = -5
 	elif collided_with == 'Parede_E':
 		velocity.x = 5 
 	move_and_slide(velocity)
+	# puramente para o funcionamento do buffer
+	velocity.x = last
 	pass
 
 # dado os controles, essa função executa suas consequencias
 func get_input():
+	# guarda a ultima velocidade
+	set_old()
+	# reseta a velocidade	
 	velocity = Vector2()
+	# pega os controles
 	control()
 	
 	var double = 2
@@ -228,24 +277,35 @@ func get_input():
 		double /= 2
 	
 	if ACTION == 0:
-		if RIGHT:
-			velocity.x += 1
-		if LEFT:
-			velocity.x -= 1
-		if UP and init_jump == 0 and not DOWN:
-			init_jump = -1
-	elif ACTION != 3 and init_jump != 0:
+		
 		if RIGHT:
 			velocity.x += 1
 		if LEFT:
 			velocity.x -= 1
 
+		buffer_update()
+		
+		if UP and init_jump == 0 and not DOWN:
+			init_jump = -1
+			
+	elif ACTION != 3 and init_jump != 0:
+		if RIGHT:
+			velocity.x += 1
+		if LEFT:
+			velocity.x -= 1
+	
+	if BUFFER[2] == -FRENTE and (BUFFER[0] + BUFFER[2]) == 0:
+		SP=1
+	else:
+		SP=0
+	
 	velocity = velocity.normalized() * speed * (double)
 	#print(init_jump)
 	pass
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
+	time += delta
 	animate()
 	if not pause:
 		animation_time += delta
@@ -264,8 +324,11 @@ func _physics_process(delta):
 		if collision:
 			collided_with = collision.collider.name
 			normalize_wall()
+	
+	
 	if DEBUG:
-		micro_pause(delta)
+		print(BUFFER)
+		#micro_pause(delta)
 		#print("-------------------------------------------------------")
 		#print(ANIMATOR.current_animation_position," ",ANIMATOR.current_animation_length," ",animacao_atual)
 		#DEBUG_CONTROLS()
