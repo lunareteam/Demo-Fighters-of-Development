@@ -1,8 +1,9 @@
-[gd_scene load_steps=27 format=2]
+[gd_scene load_steps=29 format=2]
 
 [ext_resource path="res://PlayerV2.gd" type="Script" id=1]
 [ext_resource path="res://ground.png" type="Texture" id=2]
 [ext_resource path="res://animacoes.tres" type="Animation" id=3]
+[ext_resource path="res://player.png" type="Texture" id=4]
 
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 16.6453, 11.8311 )
@@ -15,9 +16,6 @@ extents = Vector2( 20.8652, 304.96 )
 
 [sub_resource type="RectangleShape2D" id=4]
 extents = Vector2( 3, 15 )
-
-[sub_resource type="StreamTexture" id=5]
-load_path = "res://.import/player.png-2dd0af52de4b213777cd8c9df94c0978.stex"
 
 [sub_resource type="Animation" id=6]
 length = 0.5
@@ -203,6 +201,22 @@ tracks/0/keys = {
 "values": [ 80, 80 ]
 }
 
+[sub_resource type="Animation" id=25]
+resource_name = "kick2_pe"
+length = 0.75
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( -0.00228769, 0.101421, 0.229532, 0.400346, 0.519306, 0.626064 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1 ),
+"update": 1,
+"values": [ 255, 256, 257, 258, 259, 260 ]
+}
+
 [sub_resource type="Animation" id=17]
 length = 0.85
 tracks/0/type = "value"
@@ -324,6 +338,23 @@ tracks/1/keys = {
 "values": [  ]
 }
 
+[sub_resource type="Animation" id=24]
+resource_name = "walk_hxd"
+length = 0.4
+loop = true
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0.0267939, 0.12201, 0.220035, 0.31591 ),
+"transitions": PoolRealArray( 1, 1, 1, 1 ),
+"update": 1,
+"values": [ 241, 240, 243, 242 ]
+}
+
 [node name="cena" type="Node2D"]
 position = Vector2( 9.41089, -11.9434 )
 
@@ -374,11 +405,11 @@ modulate = Color( 1, 0, 0, 1 )
 shape = SubResource( 4 )
 
 [node name="Sprite" type="Sprite" parent="PlayerV2"]
-texture = SubResource( 5 )
+texture = ExtResource( 4 )
 flip_h = true
 hframes = 15
-vframes = 16
-frame = 79
+vframes = 18
+frame = 255
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="PlayerV2/Sprite"]
 anims/block_hxd = SubResource( 6 )
@@ -392,6 +423,7 @@ anims/hxd_end = SubResource( 13 )
 anims/hxnd = SubResource( 14 )
 anims/idle = SubResource( 15 )
 anims/jump = SubResource( 16 )
+anims/kick2_pe = SubResource( 25 )
 anims/kick_hxd = ExtResource( 3 )
 anims/kick_pe = SubResource( 17 )
 anims/kitty_dance = SubResource( 18 )
@@ -400,3 +432,4 @@ anims/prejump = SubResource( 20 )
 anims/soco_hxd = SubResource( 21 )
 anims/soco_pe = SubResource( 22 )
 anims/walk = SubResource( 23 )
+anims/walk_hxd = SubResource( 24 )

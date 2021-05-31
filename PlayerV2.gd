@@ -17,10 +17,11 @@ var collided_with = ""
 var init_jump = 0
 var dance_flag = 0
 var hxnd_flag = 0
-var action_busy_list = ["kick_hxd", "kick_pe","soco_pe","soco_hxd"]
+var action_busy_list = ["kick_hxd", "kick_pe", "kick2_pe","soco_pe","soco_hxd"]
 var animacao_atual
 var animation_time = 0
 var jump_timer = 0
+var FRENTE = 1
 
 # Controlador  de log
 var DEBUG = false
@@ -38,6 +39,7 @@ var ANIMATOR
 # 2 pra chutar
 # 3 pra bloquear
 var ACTION = 0
+var SP = 0
 
 var BUFFER = [0,0,0]
 var old 
@@ -108,15 +110,21 @@ func animate():
 		return
 	
 	if ACTION == 1:
-		if hxnd_flag == 0:
+		if hxnd_flag == 0 and animacao_atual != "soco_hxd":
 			animacao_atual = "soco_pe"
-		else:
+		elif animacao_atual != "soco_pe":
 			animacao_atual = "soco_hxd"
-	elif ACTION == 2:
-		if hxnd_flag == 0:
-			animacao_atual = "kick_pe"
 		else:
+			animacao_atual = "soco_pe"
+	elif ACTION == 2:
+		if hxnd_flag == 0 and animacao_atual != "kick_hxd" and SP==1:
+			animacao_atual = "kick_pe"
+		elif hxnd_flag == 0 and animacao_atual != "kick_hxd" and animacao_atual != "kick_pe":
+			animacao_atual = "kick2_pe"
+		elif animacao_atual != "kick2_pe" and animacao_atual != "kick_pe":
 			animacao_atual = "kick_hxd"
+		else:
+			animacao_atual = "kick2_pe"
 	elif ACTION == 3:
 		if hxnd_flag == 0:
 			animacao_atual = "block_pe"
@@ -131,11 +139,13 @@ func animate():
 		animacao_atual = "prejump"
 	elif hxnd_flag == 1:
 		animacao_atual = "hxnd"
-	elif hxnd_flag == 2:
+	elif hxnd_flag == 2 and velocity.x == 0:
 		animacao_atual = "hxd"
+	elif hxnd_flag == 2:
+		animacao_atual = "walk_hxd"
 	elif hxnd_flag == 3:
 		animacao_atual = "hxd_end"
-	elif(velocity.x != 0):
+	elif velocity.x != 0:
 		animacao_atual = "walk"
 	elif dance_flag == 1:
 		animacao_atual = "chapeu"
@@ -274,7 +284,7 @@ func get_input():
 			velocity.x -= 1
 
 		buffer_update()
-			
+		
 		if UP and init_jump == 0 and not DOWN:
 			init_jump = -1
 			
@@ -283,7 +293,12 @@ func get_input():
 			velocity.x += 1
 		if LEFT:
 			velocity.x -= 1
-
+	
+	if BUFFER[2] == -FRENTE and (BUFFER[0] + BUFFER[2]) == 0:
+		SP=1
+	else:
+		SP=0
+	
 	velocity = velocity.normalized() * speed * (double)
 	#print(init_jump)
 	pass
